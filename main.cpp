@@ -6,7 +6,6 @@
 #include <cstring>
 
 const int PORT = 8080;
-const int BACKLOG = 10;
 const int MAX_CONNECTIONS = 5;
 
 int create_socket()
@@ -45,7 +44,7 @@ bool bind_and_listen(int sockfd)
         return false;
     }
 
-    if (listen(sockfd, BACKLOG) < 0)
+    if (listen(sockfd, SOMAXCONN) < 0)
     {
         std::cerr << "リスニングに失敗しました。" << std::endl;
         return false;
