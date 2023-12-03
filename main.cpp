@@ -104,8 +104,13 @@ int main()
             }
         }
 
+        // HTTPレスポンスを送信
+        std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
+        send(client_sockfd, response.c_str(), response.length(), 0);
+
         // クライアントとの通信処理（省略）
 
+        // クライアントソケットを閉じる
         close(client_sockfd);
     }
 
