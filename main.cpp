@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <cstring>
+#include <fcntl.h>
 
 const int PORT = 8080;
 const int MAX_CONNECTIONS = 5;
@@ -25,7 +26,7 @@ TCPサーバーを再起動したときに前回の実行で使用されたポ�
 */
 bool set_socket_options(int sockfd)
 {
-    int opt = 1; //オプション有効の意
+    int opt = 1; // オプション有効の意
     if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
     {
         std::cerr << "ソケットオプションの設定に失敗しました。" << std::endl;
@@ -34,13 +35,24 @@ bool set_socket_options(int sockfd)
     return true;
 }
 
+bool set_non_blocking(int sockfd)
+{
+    // ソケットをノンブロッキングモードに設定
+    if (fcntl(sockfd, F_SETFL, O_NONBLOCK) < 0)
+    {
+        std::cerr << "ノンブロッキング設定に失敗しました。" << std::endl;
+        return false;
+    }
+    return true;
+}
+
 bool bind_and_listen(int sockfd)
 {
-    struct sockaddr_in addr; //サーバーのアドレス情報を保持するための構造体
+    struct sockaddr_in addr; // サーバーのアドレス情報を保持するための構造体
     std::memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(PORT);
-    addr.sin_addr.s_addr = INADDR_ANY; //サーバーが任意のインターフェースで接続を受け付ける(すべての利用可能なネットワークインターフェース)
+    addr.sin_addr.s_addr = INADDR_ANY; // サーバーが任意のインターフェースで接続を受け付ける(すべての利用可能なネットワークインターフェース)
 
     if (bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
@@ -63,7 +75,7 @@ int main()
     if (sockfd < 0)
         return -1;
 
-    if (!set_socket_options(sockfd))
+    if (!set_socket_options(sockfd) || !set_non_blocking(sockfd))
     {
         close(sockfd);
         return -1;
@@ -82,8 +94,14 @@ int main()
         int client_sockfd = accept(sockfd, NULL, NULL);
         if (client_sockfd < 0)
         {
-            std::cerr << "クライアントからの接続受付に失敗しました。" << std::endl;
-            continue;
+            // ノンブロッキングモードで接続要求がない場合は、単にcontinueする
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+                continue;
+            else
+            {
+                std::cerr << "クライアントからの接続受付に失敗しました。" << std::endl;
+                continue;
+            }
         }
 
         // クライアントとの通信処理（省略）
