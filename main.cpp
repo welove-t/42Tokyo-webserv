@@ -48,16 +48,23 @@ int main()
         // クライアントとの通信処理
         char buffer[1024] = {0};
         ssize_t bytes_received = recv(client_sockfd, buffer, sizeof(buffer), 0);
-        std::string request(buffer);
-        parse_request(request);
-        if (bytes_received < 0) {
-            // エラーハンドリング
-        } else if (bytes_received == 0) {
-            // クライアントが接続を閉じた
-        } else {
-            // リクエストデータの処理
-            std::cout << "受信したリクエスト: " << buffer << std::endl;
-            // 以下、レスポンス処理（省略）
+
+        if (bytes_received > 0) {
+
+            std::string request(buffer, bytes_received);
+            std::map<std::string, std::string> headers;
+            std::string body;
+            // リクエストラインの解析
+            parse_request(request);
+
+            // ヘッダーとボディの解析
+            parse_headers_and_body(request, headers, body);
+
+            // ヘッダーとボディの内容を表示（デバッグ用）
+            for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
+            std::cout << GREEN << it->first << ": " << it->second << RESET << std::endl;
+        }
+            std::cout << GREEN << "Body: " << body << RESET << std::endl;
         }
         // クライアントソケットを閉じる
         close(client_sockfd);
