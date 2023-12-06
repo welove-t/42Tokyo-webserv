@@ -6,8 +6,6 @@
 #include <netinet/in.h>
 #include <cstring>
 
-const int MAX_CONNECTIONS = 5;
-
 int main()
 {
     int sockfd = create_socket();
