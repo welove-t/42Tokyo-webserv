@@ -108,8 +108,18 @@ int main()
         std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
         send(client_sockfd, response.c_str(), response.length(), 0);
 
-        // クライアントとの通信処理（省略）
-
+        // クライアントとの通信処理
+        char buffer[1024] = {0};
+        ssize_t bytes_received = recv(client_sockfd, buffer, sizeof(buffer), 0);
+        if (bytes_received < 0) {
+            // エラーハンドリング
+        } else if (bytes_received == 0) {
+            // クライアントが接続を閉じた
+        } else {
+            // リクエストデータの処理
+            std::cout << "受信したリクエスト: " << buffer << std::endl;
+            // 以下、レスポンス処理（省略）
+        }
         // クライアントソケットを閉じる
         close(client_sockfd);
     }
