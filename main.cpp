@@ -9,6 +9,12 @@
 #include <vector>
 #include <string>
 
+#define RED		"\e[0;31m" // Red
+#define GREEN	"\e[0;32m" // Green
+#define YELLOW	"\e[0;33m" // Yellow
+#define BLUE	"\e[0;34m" // Blue
+#define RESET 	"\e[0m"    // Reset
+
 const int PORT = 8080;
 const int MAX_CONNECTIONS = 5;
 
@@ -36,7 +42,7 @@ void parse_request(const std::string &request) {
     // ...
 
     // リクエスト情報の出力（デバッグ用）
-    std::cout << "Method: " << method << ", URI: " << uri << ", Version: " << http_version << std::endl;
+    std::cout << GREEN << "Method: " << method << ", URI: " << uri << ", Version: " << http_version << RESET << std::endl;
 }
 
 
@@ -45,7 +51,7 @@ int create_socket()
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd == -1)
     {
-        std::cerr << "ソケットの作成に失敗しました。" << std::endl;
+        std::cerr << RED << "ソケットの作成に失敗しました。" << RESET << std::endl;
         return -1;
     }
     return sockfd;
@@ -60,7 +66,7 @@ bool set_socket_options(int sockfd)
     int opt = 1; // オプション有効の意
     if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
     {
-        std::cerr << "ソケットオプションの設定に失敗しました。" << std::endl;
+        std::cerr << RED <<  "ソケットオプションの設定に失敗しました。" << RESET << std::endl;
         return false;
     }
     return true;
@@ -71,7 +77,7 @@ bool set_non_blocking(int sockfd)
     // ソケットをノンブロッキングモードに設定
     if (fcntl(sockfd, F_SETFL, O_NONBLOCK) < 0)
     {
-        std::cerr << "ノンブロッキング設定に失敗しました。" << std::endl;
+        std::cerr << RED << "ノンブロッキング設定に失敗しました。" << RESET << std::endl;
         return false;
     }
     return true;
@@ -87,13 +93,13 @@ bool bind_and_listen(int sockfd)
 
     if (bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
-        std::cerr << "バインドに失敗しました。" << std::endl;
+        std::cerr << RED << "バインドに失敗しました。" << RESET << std::endl;
         return false;
     }
 
     if (listen(sockfd, SOMAXCONN) < 0)
     {
-        std::cerr << "リスニングに失敗しました。" << std::endl;
+        std::cerr << RED << "リスニングに失敗しました。" << RESET << std::endl;
         return false;
     }
 
@@ -130,7 +136,7 @@ int main()
                 continue;
             else
             {
-                std::cerr << "クライアントからの接続受付に失敗しました。" << std::endl;
+                std::cerr << RED << "クライアントからの接続受付に失敗しました。" << RESET << std::endl;
                 continue;
             }
         }
