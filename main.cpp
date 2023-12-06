@@ -5,9 +5,40 @@
 #include <unistd.h>
 #include <cstring>
 #include <fcntl.h>
+#include <sstream>
+#include <vector>
+#include <string>
 
 const int PORT = 8080;
 const int MAX_CONNECTIONS = 5;
+
+// リクエストの解析
+void parse_request(const std::string &request) {
+    std::istringstream request_stream(request);
+    std::string request_line;
+    std::getline(request_stream, request_line);
+
+    // リクエストラインの解析
+    std::istringstream request_line_stream(request_line);
+    std::string method;
+    std::string uri;
+    std::string http_version;
+    request_line_stream >> method >> uri >> http_version;
+
+    // ヘッダーの解析
+    std::string header_line;
+    while (std::getline(request_stream, header_line) && header_line != "\r") {
+        // ヘッダーの処理（例: "Host: localhost:8080"）
+        // ...
+    }
+
+    // ボディの処理（POSTリクエストの場合）
+    // ...
+
+    // リクエスト情報の出力（デバッグ用）
+    std::cout << "Method: " << method << ", URI: " << uri << ", Version: " << http_version << std::endl;
+}
+
 
 int create_socket()
 {
@@ -111,6 +142,8 @@ int main()
         // クライアントとの通信処理
         char buffer[1024] = {0};
         ssize_t bytes_received = recv(client_sockfd, buffer, sizeof(buffer), 0);
+        std::string request(buffer);
+        parse_request(request);
         if (bytes_received < 0) {
             // エラーハンドリング
         } else if (bytes_received == 0) {
