@@ -1,110 +1,12 @@
+#include "server.h"
+#include "request_handler.h"
+#include "cout_color.h"
 #include <iostream>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <unistd.h>
+#include <netinet/in.h>
 #include <cstring>
-#include <fcntl.h>
-#include <sstream>
-#include <vector>
-#include <string>
 
-#define RED		"\e[0;31m" // Red
-#define GREEN	"\e[0;32m" // Green
-#define YELLOW	"\e[0;33m" // Yellow
-#define BLUE	"\e[0;34m" // Blue
-#define RESET 	"\e[0m"    // Reset
-
-const int PORT = 8080;
 const int MAX_CONNECTIONS = 5;
-
-// リクエストの解析
-void parse_request(const std::string &request) {
-    std::istringstream request_stream(request);
-    std::string request_line;
-    std::getline(request_stream, request_line);
-
-    // リクエストラインの解析
-    std::istringstream request_line_stream(request_line);
-    std::string method;
-    std::string uri;
-    std::string http_version;
-    request_line_stream >> method >> uri >> http_version;
-
-    // ヘッダーの解析
-    std::string header_line;
-    while (std::getline(request_stream, header_line) && header_line != "\r") {
-        // ヘッダーの処理（例: "Host: localhost:8080"）
-        // ...
-    }
-
-    // ボディの処理（POSTリクエストの場合）
-    // ...
-
-    // リクエスト情報の出力（デバッグ用）
-    std::cout << GREEN << "Method: " << method << ", URI: " << uri << ", Version: " << http_version << RESET << std::endl;
-}
-
-
-int create_socket()
-{
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd == -1)
-    {
-        std::cerr << RED << "ソケットの作成に失敗しました。" << RESET << std::endl;
-        return -1;
-    }
-    return sockfd;
-}
-
-/*
-TCPサーバーを再起動したときに前回の実行で使用されたポートがすぐに再利用できるようにするための設定
-これにより、サーバーを停止してすぐに再起動する際に、ポートが利用可能であることが保証される
-*/
-bool set_socket_options(int sockfd)
-{
-    int opt = 1; // オプション有効の意
-    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-    {
-        std::cerr << RED <<  "ソケットオプションの設定に失敗しました。" << RESET << std::endl;
-        return false;
-    }
-    return true;
-}
-
-bool set_non_blocking(int sockfd)
-{
-    // ソケットをノンブロッキングモードに設定
-    if (fcntl(sockfd, F_SETFL, O_NONBLOCK) < 0)
-    {
-        std::cerr << RED << "ノンブロッキング設定に失敗しました。" << RESET << std::endl;
-        return false;
-    }
-    return true;
-}
-
-bool bind_and_listen(int sockfd)
-{
-    struct sockaddr_in addr; // サーバーのアドレス情報を保持するための構造体
-    std::memset(&addr, 0, sizeof(addr));
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(PORT);
-    addr.sin_addr.s_addr = INADDR_ANY; // サーバーが任意のインターフェースで接続を受け付ける(すべての利用可能なネットワークインターフェース)
-
-    if (bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-    {
-        std::cerr << RED << "バインドに失敗しました。" << RESET << std::endl;
-        return false;
-    }
-
-    if (listen(sockfd, SOMAXCONN) < 0)
-    {
-        std::cerr << RED << "リスニングに失敗しました。" << RESET << std::endl;
-        return false;
-    }
-
-    return true;
-}
 
 int main()
 {
