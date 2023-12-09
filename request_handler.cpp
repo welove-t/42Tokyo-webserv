@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <sys/socket.h>
 #include <map>
 
 void parse_headers_and_body(const std::string& request, std::map<std::string, std::string>& headers, std::string& body) {
@@ -75,8 +76,18 @@ void handle_post_request(const std::string& body) {
     // 実際には、フォームデータの解析、データベースへの保存、APIへの応答などの処理をここに実装
 }
 
+// レスポンス送信処理
+void send_response(int client_sockfd, const std::string& response) {
+    // レスポンスをクライアントに送信
+    ssize_t bytes_sent = send(client_sockfd, response.c_str(), response.size(), 0);
+    if (bytes_sent < 0) {
+        // 送信エラーの処理
+        std::cerr << "Error sending response to client." << std::endl;
+    }
+}
+
 // HTTPリクエストを処理する関数
-void handle_request(const std::string& method, const std::string& uri, const std::map<std::string, std::string>& headers, const std::string& body) {
+void handle_request(int client_sockfd, const std::string& method, const std::string& uri, const std::map<std::string, std::string>& headers, const std::string& body) {
     std::string response;
     if (method == "GET") {
         std::string file_path = "static" + uri;
@@ -96,6 +107,7 @@ void handle_request(const std::string& method, const std::string& uri, const std
     } else if (method == "DELETE") {
         // DELETEリクエストの処理
     }
-    // レスポンスの送信（例: send関数の使用）
+    // レスポンスの送信
+    send_response(client_sockfd, response);
 }
 
