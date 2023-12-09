@@ -66,6 +66,15 @@ std::string create_http_response(const std::string& status, const std::string& c
     return response;
 }
 
+// POSTリクエスト処理
+void handle_post_request(const std::string& body) {
+    // POSTリクエストボディの処理
+    // ここではシンプルにボディをコンソールに出力
+    std::cout << "Received POST data: " << body << std::endl;
+
+    // 実際には、フォームデータの解析、データベースへの保存、APIへの応答などの処理をここに実装
+}
+
 // HTTPリクエストを処理する関数
 void handle_request(const std::string& method, const std::string& uri, const std::map<std::string, std::string>& headers, const std::string& body) {
     std::string response;
@@ -82,6 +91,8 @@ void handle_request(const std::string& method, const std::string& uri, const std
         }
     } else if (method == "POST") {
         // POSTリクエストの処理
+        handle_post_request(body);
+        response = create_http_response("200 OK", "POST request processed");
     } else if (method == "DELETE") {
         // DELETEリクエストの処理
     }
