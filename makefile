@@ -1,6 +1,6 @@
 NAME = server
 CXX = c++
-CXXFLAGS = -Wall -Wextra -std=c++98
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 INCLUDES = -I.
 SRCS		= main.cpp server.cpp request_handler.cpp
 OBJS_DIR	= .objs
@@ -20,7 +20,7 @@ $(OBJS_DIR)/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $<  -o $@
 
 clean:
-	$(RM) *.o
+	$(RM) ${OBJS_DIR}/*.o
 
 fclean: clean
 	$(RM) $(NAME)

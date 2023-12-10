@@ -1,10 +1,9 @@
 #include "request_handler.h"
 #include "cout_color.h"
-#include <sstream>
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <sys/socket.h>
-#include <map>
 
 void parse_headers_and_body(const std::string& request, std::map<std::string, std::string>& headers, std::string& body) {
     std::istringstream request_stream(request);
@@ -27,18 +26,16 @@ void parse_headers_and_body(const std::string& request, std::map<std::string, st
     }
 }
 
-
 // リクエストの解析
-void parse_request(const std::string &request) {
+void parse_request_line(const std::string &request, std::string &method, std::string &uri, std::map<std::string, std::string> &headers) {
     std::istringstream request_stream(request);
     std::string request_line;
     std::getline(request_stream, request_line);
 
     std::istringstream request_line_stream(request_line);
-    std::string method, uri, http_version;
+    std::string http_version;
     request_line_stream >> method >> uri >> http_version;
-
-    std::map<std::string, std::string> headers;
+    headers.clear();
     std::string header_line;
     while (std::getline(request_stream, header_line) && header_line != "\r" && header_line != "\n") {
         std::size_t delimiter_pos = header_line.find(": ");
@@ -50,16 +47,16 @@ void parse_request(const std::string &request) {
     }
 
     // POSTリクエストの場合、ボディを読み取る処理がここに必要
-
-    std::cout << GREEN << "Method: " << method << ", URI: " << uri << ", Version: " << http_version << RESET << std::endl;
-    for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
-        std::cout << it->first << ": " << it->second << std::endl;
-    }
+    // std::cout << GREEN << "Method: " << method << ", URI: " << uri << ", Version: " << http_version << RESET << std::endl;
+    // for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
+    //     std::cout << it->first << ": " << it->second << std::endl;
+    // }
 }
 
 // HTTPレスポンスの生成
 std::string create_http_response(const std::string& status, const std::string& content, const std::string& content_type = "text/html") {
     std::string response = "HTTP/1.1 " + status + "\r\n";
+    response += "Connection: keep-alive\r\n";
     response += "Content-Length: " + std::to_string(content.size()) + "\r\n";
     response += "Content-Type: " + content_type + "\r\n";
     response += "\r\n";
@@ -87,8 +84,9 @@ void send_response(int client_sockfd, const std::string& response) {
 }
 
 // HTTPリクエストを処理する関数
-void handle_request(int client_sockfd, const std::string& method, const std::string& uri, const std::map<std::string, std::string>& headers, const std::string& body) {
+void handle_request(int client_sockfd, const std::string& method, const std::string& uri, const std::string& body, std::string &respons) {
     std::string response;
+    (void) respons;
     if (method == "GET") {
         std::string file_path = "static" + uri;
         std::ifstream file(file_path.c_str(), std::ios::in | std::ios::binary);
@@ -108,6 +106,7 @@ void handle_request(int client_sockfd, const std::string& method, const std::str
         // DELETEリクエストの処理
     }
     // レスポンスの送信
+    std::cout << BLUE << "response: " << response << RESET << std::endl;
     send_response(client_sockfd, response);
 }
 
